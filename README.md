@@ -1,10 +1,10 @@
 # Jules MCP Server
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) ![CodeRabbit Pull Request Reviews](https://img.shields.io/coderabbit/prs/github/SpiffyNyanXD/jules-mcp-server?utm_source=oss&utm_medium=github&utm_campaign=SpiffyNyanXD%2Fjules-mcp-server&labelColor=171717&color=FF570A&link=https%3A%2F%2Fcoderabbit.ai&label=CodeRabbit+Reviews)
 
 ## Introduction
 
-Jules MCP Server is a Model Context Protocol (MCP) compatible server that acts as a bridge between your local LLM clients (like Claude Desktop) and the Jules API. It enables AI assistants to seamlessly create, inspect, and continue autonomous coding sessions directly against GitHub repositories.
+Jules MCP Server is a Model Context Protocol (MCP) compatible server that acts as a bridge between your local LLM clients (like Claude Desktop) and the Jules API. It enables AI assistants to seamlessly interact with the Jules autonomous coding engine.
 
 ## Features
 
@@ -16,7 +16,7 @@ Jules MCP Server is a Model Context Protocol (MCP) compatible server that acts a
 
 ## Why this project exists
 
-Modern AI development involves interacting with codebases, but context windows are limited. The Jules API provides a powerful backend for autonomous codebase manipulation. However, getting your local LLMs (like Claude) to talk to Jules requires a bridge. This project exists to provide that bridge using the Model Context Protocol, allowing local clients to hand off complex coding tasks to the Jules engine while maintaining a seamless user experience.
+Modern AI development involves interacting with codebases, but context windows are limited. The Jules API provides a powerful backend for autonomous codebase manipulation. However, getting your local AI environment to leverage Jules requires integration work. This server bridges that gap, allowing Claude Desktop, or any MCP-compatible LLM client, to invoke Jules sessions on-demand.
 
 ## Architecture Diagram
 
@@ -44,7 +44,7 @@ graph TD
 
 The Jules MCP server is built on Node.js using Express. It exposes an endpoint (`/mcp`) that accepts JSON-RPC 2.0 requests formatted according to the MCP specification.
 
-When an LLM invokes an MCP tool, the server translates that call into an HTTP request to the upstream Jules API. For example, when `create_jules_session` is called, it constructs the necessary payload, passes along your `JULES_API_KEY`, creates the session on the Jules backend, and returns the session details to the LLM.
+When an LLM invokes an MCP tool, the server translates that call into an HTTP request to the upstream Jules API. For example, when `create_jules_session` is called, it constructs the necessary payload with the prompt, repository, and branch context, then forwards it to the Jules API along with the `X-Goog-Api-Key` header.
 
 If Supabase is configured, it will simultaneously record session metadata (like `session_id`, `prompt`, and `status`) to a `jules_sessions` table.
 
@@ -96,7 +96,7 @@ To use this server with Claude Desktop, you need to configure Claude to connect 
 
 1. Ensure your Jules MCP server is running locally (e.g., `http://localhost:3000/mcp`).
 2. Locate your Claude Desktop configuration file (`claude_desktop_config.json`).
-3. Add the server under the `mcpServers` configuration using the `sse` (Server-Sent Events) or HTTP endpoint approach. *Note: Since this Express server currently uses a basic POST mechanism for `/mcp`, you will need an MCP bridge or ensure your client supports standard HTTP POST-based JSON-RPC for MCP.*
+3. Add the server under the `mcpServers` configuration using the `sse` (Server-Sent Events) or HTTP endpoint approach. *Note: Since this Express server currently uses a basic POST mechanism for `/mcp`, HTTP or direct stdio invocation is recommended.*
 
 Example snippet for a compatible MCP client configuration:
 ```json
